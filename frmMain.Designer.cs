@@ -39,15 +39,17 @@
             this.button6 = new System.Windows.Forms.Button();
             this.btnDBUpload = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.tspStatus = new System.Windows.Forms.ToolStripProgressBar();
             this.lstLog = new System.Windows.Forms.ListBox();
             this.btnResetPay = new System.Windows.Forms.Button();
             this.btnAllReset = new System.Windows.Forms.Button();
-            this.statusStrip1.SuspendLayout();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.progressBar2 = new System.Windows.Forms.ProgressBar();
+            this.progressBar3 = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // btnPreContract
             // 
+            this.btnPreContract.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.btnPreContract.Location = new System.Drawing.Point(12, 37);
             this.btnPreContract.Name = "btnPreContract";
             this.btnPreContract.Size = new System.Drawing.Size(237, 56);
@@ -58,6 +60,7 @@
             // 
             // btnContract
             // 
+            this.btnContract.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.btnContract.Location = new System.Drawing.Point(12, 99);
             this.btnContract.Name = "btnContract";
             this.btnContract.Size = new System.Drawing.Size(237, 56);
@@ -68,6 +71,7 @@
             // 
             // btnPay
             // 
+            this.btnPay.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.btnPay.Location = new System.Drawing.Point(12, 161);
             this.btnPay.Name = "btnPay";
             this.btnPay.Size = new System.Drawing.Size(237, 56);
@@ -79,7 +83,7 @@
             // tbxPreContractFilePath
             // 
             this.tbxPreContractFilePath.AllowDrop = true;
-            this.tbxPreContractFilePath.Location = new System.Drawing.Point(255, 56);
+            this.tbxPreContractFilePath.Location = new System.Drawing.Point(255, 37);
             this.tbxPreContractFilePath.Name = "tbxPreContractFilePath";
             this.tbxPreContractFilePath.Size = new System.Drawing.Size(409, 21);
             this.tbxPreContractFilePath.TabIndex = 3;
@@ -89,7 +93,7 @@
             // tbxContractFilePath
             // 
             this.tbxContractFilePath.AllowDrop = true;
-            this.tbxContractFilePath.Location = new System.Drawing.Point(255, 118);
+            this.tbxContractFilePath.Location = new System.Drawing.Point(255, 99);
             this.tbxContractFilePath.Name = "tbxContractFilePath";
             this.tbxContractFilePath.Size = new System.Drawing.Size(409, 21);
             this.tbxContractFilePath.TabIndex = 4;
@@ -99,7 +103,7 @@
             // tbxPayFile
             // 
             this.tbxPayFile.AllowDrop = true;
-            this.tbxPayFile.Location = new System.Drawing.Point(255, 180);
+            this.tbxPayFile.Location = new System.Drawing.Point(255, 161);
             this.tbxPayFile.Name = "tbxPayFile";
             this.tbxPayFile.Size = new System.Drawing.Size(409, 21);
             this.tbxPayFile.TabIndex = 5;
@@ -108,7 +112,8 @@
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(12, 298);
+            this.button4.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.button4.Location = new System.Drawing.Point(12, 285);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(207, 56);
             this.button4.TabIndex = 6;
@@ -118,7 +123,8 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(234, 298);
+            this.button5.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.button5.Location = new System.Drawing.Point(235, 285);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(207, 56);
             this.button5.TabIndex = 7;
@@ -128,7 +134,8 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(457, 298);
+            this.button6.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.button6.Location = new System.Drawing.Point(457, 285);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(207, 56);
             this.button6.TabIndex = 8;
@@ -138,6 +145,7 @@
             // 
             // btnDBUpload
             // 
+            this.btnDBUpload.Font = new System.Drawing.Font("굴림", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.btnDBUpload.Location = new System.Drawing.Point(12, 223);
             this.btnDBUpload.Name = "btnDBUpload";
             this.btnDBUpload.Size = new System.Drawing.Size(652, 56);
@@ -148,20 +156,11 @@
             // 
             // statusStrip1
             // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tspStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 366);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 349);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1144, 22);
             this.statusStrip1.TabIndex = 10;
             this.statusStrip1.Text = "statusStrip1";
-            // 
-            // tspStatus
-            // 
-            this.tspStatus.BackColor = System.Drawing.SystemColors.MenuHighlight;
-            this.tspStatus.Maximum = 300;
-            this.tspStatus.Name = "tspStatus";
-            this.tspStatus.Size = new System.Drawing.Size(1100, 16);
             // 
             // lstLog
             // 
@@ -169,7 +168,7 @@
             this.lstLog.ItemHeight = 12;
             this.lstLog.Location = new System.Drawing.Point(670, 37);
             this.lstLog.Name = "lstLog";
-            this.lstLog.Size = new System.Drawing.Size(462, 316);
+            this.lstLog.Size = new System.Drawing.Size(462, 304);
             this.lstLog.TabIndex = 11;
             // 
             // btnResetPay
@@ -192,12 +191,42 @@
             this.btnAllReset.UseVisualStyleBackColor = true;
             this.btnAllReset.Click += new System.EventHandler(this.btnAllReset_Click);
             // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(255, 70);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(409, 23);
+            this.progressBar1.TabIndex = 14;
+            this.progressBar1.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxPreContractFilePath_DragDrop);
+            this.progressBar1.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxPreContractFilePath_DragEnter);
+            // 
+            // progressBar2
+            // 
+            this.progressBar2.Location = new System.Drawing.Point(255, 132);
+            this.progressBar2.Name = "progressBar2";
+            this.progressBar2.Size = new System.Drawing.Size(409, 23);
+            this.progressBar2.TabIndex = 15;
+            this.progressBar2.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxContractFilePath_DragDrop);
+            this.progressBar2.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxContractFilePath_DragEnter);
+            // 
+            // progressBar3
+            // 
+            this.progressBar3.Location = new System.Drawing.Point(255, 194);
+            this.progressBar3.Name = "progressBar3";
+            this.progressBar3.Size = new System.Drawing.Size(409, 23);
+            this.progressBar3.TabIndex = 16;
+            this.progressBar3.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragDrop);
+            this.progressBar3.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragEnter);
+            // 
             // frmMain
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1144, 388);
+            this.ClientSize = new System.Drawing.Size(1144, 371);
+            this.Controls.Add(this.progressBar3);
+            this.Controls.Add(this.progressBar2);
+            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.btnAllReset);
             this.Controls.Add(this.btnResetPay);
             this.Controls.Add(this.lstLog);
@@ -217,8 +246,6 @@
             this.Name = "frmMain";
             this.Text = "정산 관리자";
             this.Load += new System.EventHandler(this.frmMain_Load);
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -237,10 +264,12 @@
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.Button btnDBUpload;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripProgressBar tspStatus;
         private System.Windows.Forms.ListBox lstLog;
         private System.Windows.Forms.Button btnResetPay;
         private System.Windows.Forms.Button btnAllReset;
+        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.ProgressBar progressBar2;
+        private System.Windows.Forms.ProgressBar progressBar3;
     }
 }
 

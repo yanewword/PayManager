@@ -31,6 +31,10 @@ namespace PayManager
             conn.Open();
         }
 
+        private void Log(string log) {
+            lstLog.Items.Add(DateTime.Now.ToShortTimeString() + " : " + log);
+        }
+
         private void btnPreContract_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
@@ -78,18 +82,22 @@ namespace PayManager
 
         private void btnDBUpload_Click(object sender, EventArgs e)
         {
-            lstLog.Items.Add("사전 계약 파일을 올리고 있습니다.");
-
+            Log("사전 계약 파일을 읽고 있습니다.");
             UploadPreContract();
-            lstLog.Items.Add("사전 계약 파일을 올리고 있습니다.");
+            progressBar1.Value = 100;
+            Log("사전 계약 DB 저장 완료");
 
+            Log("계약 파일을 읽고 있습니다.");
             UploadContract();
-            lstLog.Items.Add("계약 파일을 올리고 있습니다.");
+            progressBar2.Value = 100;
+            Log("계약 DB 저장 완료");
 
+            Log("정산 파일을 읽고 있습니다.");
             UploadPayTable();
-            lstLog.Items.Add("정산 파일을 올리고 있습니다.");
+            progressBar3.Value = 100;
+            Log("정산 DB 저장 완료");
 
-            lstLog.Items.Add("업로드가 완료되었습니다.");
+            Log("업로드가 완료되었습니다.");
         }
 
         private void UploadPreContract()
@@ -107,14 +115,11 @@ namespace PayManager
             OleDbDataAdapter adp = new OleDbDataAdapter(selectQuery, conn);
             adp.Fill(ds);
 
-            lstLog.Items.Add("DB에 " + ds.Tables[0].Rows.Count.ToString() + "개 데이터가 있습니다");
+            Log("사전 계약 DB에 " + ds.Tables[0].Rows.Count.ToString() + "개 데이터가 있습니다");
 
-            foreach (DataRow row in ds.Tables[0].Rows)
-            {
-                foreach (object dat in row.ItemArray)
-                {
-                    if (string.IsNullOrEmpty(dat.ToString()) == false)
-                    {
+            foreach (DataRow row in ds.Tables[0].Rows) {
+                foreach (object dat in row.ItemArray) {
+                    if (string.IsNullOrEmpty(dat.ToString()) == false) {
                         try {
                             phoneNumber.Add(dat.ToString(), "");
                         } catch {
@@ -130,15 +135,27 @@ namespace PayManager
 
             int insertCount = 0;
 
-            foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet1 in workbook.Worksheets)
+            string[] header = {"일자", "가게명(상호명)", "주 소", "연락처", "상담내용"};
+            for (int i = 0; i < header.Length; i++) {
+                string h = (workbook.Worksheets[1].UsedRange.Cells[1, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
+                if (h != header[i]) {
+                    Log("잘못된 사전 계약 파일 입니다.");
+                    ExitExcel(application);
+                    return;
+                }
+            }
+
+            //foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet1 in workbook.Worksheets)
+            for (int k = 0; k < workbook.Worksheets.Count; k++)
             {
+                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
                 int blankCount = 0;
-                Microsoft.Office.Interop.Excel.Range range = worksheet1.UsedRange;
+                int stepValue = (100 / workbook.Worksheets.Count);
 
                 for (int i = 2; i <= range.Rows.Count; ++i)
                 {
-                    if (blankCount == 10)
-                    {
+                    progressBar1.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
+                    if (blankCount == 10) {
                         break;
                     }
 
@@ -200,18 +217,9 @@ namespace PayManager
 
             workbook.Close();
 
-            lstLog.Items.Add("신규 사전 계약 데이터가 " + insertCount + "개 데이터가 업로드 되었습니다.");
+            Log("신규 사전 계약 데이터가 " + insertCount + "개 데이터가 DB에 저장 되었습니다.");
 
-            uint processId = 0;
-            GetWindowThreadProcessId(new IntPtr(application.Hwnd), out processId);
-            application.Quit();
-            if (processId != 0)
-            {
-                System.Diagnostics.Process excelProcess = System.Diagnostics.Process.GetProcessById((int)processId);
-                excelProcess.CloseMainWindow();
-                excelProcess.Refresh();
-                excelProcess.Kill();
-            }
+            ExitExcel(application);
         }
 
         private void UploadContract()
@@ -247,21 +255,35 @@ namespace PayManager
                 }
             }
 
+            Log("계약 DB에 " + sotreid.Count.ToString() + "개 데이터가 있습니다");
+
             Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application();
             Microsoft.Office.Interop.Excel.Workbook workbook = application.Workbooks.Open(tbxContractFilePath.Text);
             application.Visible = false;
 
-            int insertDataCount = 0; 
+            string[] header = { "일자", "서류수신", "가게명(상호명)", "분야", "사업자등록번호", "연락처", "주 소", "대표자"};
 
-            foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet1 in workbook.Worksheets)
-            {
+            for (int i = 0; i < header.Length; i++) {
+                string h = (workbook.Worksheets[1].UsedRange.Cells[2, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
+                if (h != header[i]) {
+                    Log("잘못된 계약 파일 입니다.");
+                    ExitExcel(application);
+                    return;
+                }
+            }
+
+            int insertDataCount = 0;
+
+            for (int k = 0; k < workbook.Worksheets.Count; k++) {
+                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
                 int blankCount = 0;
-                Microsoft.Office.Interop.Excel.Range range = worksheet1.UsedRange;
+                int stepValue = (100 / workbook.Worksheets.Count);
 
                 for (int i = 2; i <= range.Rows.Count; ++i)
                 {
-                    if (blankCount == 10)
-                    {
+                    progressBar2.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
+
+                    if (blankCount == 10) {
                         break;
                     }
 
@@ -332,7 +354,7 @@ namespace PayManager
                 }
             }
 
-            lstLog.Items.Add("신규 계약 데이터가 " + insertDataCount + "개 업로드 되었습니다.");
+            Log("신규 계약 데이터가 " + insertDataCount + "개 업로드 되었습니다.");
 
             workbook.Close();
             ExitExcel(application);
@@ -371,15 +393,28 @@ namespace PayManager
             Microsoft.Office.Interop.Excel.Workbook workbook = application.Workbooks.Open(tbxPayFile.Text);
             application.Visible = false;
 
+            string[] header = { "Storeid", "Storename", "지역1", "대행사별", "리스트업날짜", "정산가능"};
+
+            for (int i = 0; i < header.Length; i++) {
+                string h = (workbook.Worksheets[1].UsedRange.Cells[4, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
+                if (h != header[i]) {
+                    Log("잘못된 정산 파일 입니다.");
+                    ExitExcel(application);
+                    return;
+                }
+            }
+
             int dataCount = 0;
-            foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet1 in workbook.Worksheets)
-            {
+            for (int k = 0; k < workbook.Worksheets.Count; k++) {
+                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
                 int blankCount = 0;
-                Microsoft.Office.Interop.Excel.Range range = worksheet1.UsedRange;
                 bool bBegin = false;
-                for (int i = 1; i <= range.Rows.Count; ++i)
-                {
-                    
+
+                int stepValue = (100 / workbook.Worksheets.Count);
+
+                for (int i = 1; i <= range.Rows.Count; ++i) {
+                    progressBar3.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
+
                     object temp = (range.Cells[i, 1] as Microsoft.Office.Interop.Excel.Range).Value2;
                     if (temp == null)
                         continue;
@@ -470,18 +505,9 @@ namespace PayManager
 
             workbook.Close();
 
-            lstLog.Items.Add("정산 데이터가 " + dataCount + "개 데이터가 있습니다");
+            Log("정산 데이터가 " + dataCount + "개 데이터가 있습니다");
 
-            uint processId = 0;
-            GetWindowThreadProcessId(new IntPtr(application.Hwnd), out processId);
-            application.Quit();
-            if (processId != 0)
-            {
-                System.Diagnostics.Process excelProcess = System.Diagnostics.Process.GetProcessById((int)processId);
-                excelProcess.CloseMainWindow();
-                excelProcess.Refresh();
-                excelProcess.Kill();
-            }
+            ExitExcel(application);
         }
 
         private void tbxPreContractFilePath_DragEnter(object sender, DragEventArgs e)
