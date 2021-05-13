@@ -145,8 +145,7 @@ namespace PayManager
             if (sfd.ShowDialog() == DialogResult.OK) {
                 string fileName = sfd.FileName;
 
-                Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application(); // 엑셀 어플리케이션 생성 
-                Microsoft.Office.Interop.Excel.Workbook workBook = excelApp.Workbooks.Add(); // 워크북 추가 
+                Microsoft.Office.Interop.Excel.Workbook workBook = Main.ExcelApp.Workbooks.Add(); // 워크북 추가 
                 Microsoft.Office.Interop.Excel.Worksheet workSheet;
 
                 for (int i = 0; i < lsvPay.Items.Count; i++) {
@@ -194,10 +193,6 @@ namespace PayManager
                 }
                 workBook.SaveAs(fileName, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
                 workBook.Close(true);
-                excelApp.Quit();
-
-                Main.ExitExcel(excelApp);
-
                 MessageBox.Show("저장 완료");
             }
         }

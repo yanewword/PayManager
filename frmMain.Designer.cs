@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.btnPreContract = new System.Windows.Forms.Button();
             this.btnContract = new System.Windows.Forms.Button();
             this.btnPay = new System.Windows.Forms.Button();
@@ -45,6 +46,7 @@
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.progressBar2 = new System.Windows.Forms.ProgressBar();
             this.progressBar3 = new System.Windows.Forms.ProgressBar();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnPreContract
@@ -218,12 +220,22 @@
             this.progressBar3.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragDrop);
             this.progressBar3.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragEnter);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(670, 19);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 12);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "Log : ";
+            // 
             // frmMain
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1144, 371);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.progressBar3);
             this.Controls.Add(this.progressBar2);
             this.Controls.Add(this.progressBar1);
@@ -241,6 +253,7 @@
             this.Controls.Add(this.btnPay);
             this.Controls.Add(this.btnContract);
             this.Controls.Add(this.btnPreContract);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmMain";
@@ -270,6 +283,7 @@
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.ProgressBar progressBar2;
         private System.Windows.Forms.ProgressBar progressBar3;
+        private System.Windows.Forms.Label label1;
     }
 }
 

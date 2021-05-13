@@ -100,8 +100,7 @@ namespace PayManager
             if (sfd.ShowDialog() == DialogResult.OK) {
                 string fileName = sfd.FileName;
 
-                Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application(); // 엑셀 어플리케이션 생성 
-                Microsoft.Office.Interop.Excel.Workbook workBook = excelApp.Workbooks.Add(); // 워크북 추가 
+                Microsoft.Office.Interop.Excel.Workbook workBook = Main.ExcelApp.Workbooks.Add(); // 워크북 추가 
                 Microsoft.Office.Interop.Excel.Worksheet workSheet;
 
                 for (int i = 0; i < lsvPay.Items.Count; i++) {
@@ -119,7 +118,7 @@ namespace PayManager
                     workSheet = workBook.Worksheets.get_Item(1) as Microsoft.Office.Interop.Excel.Worksheet;
                     workSheet.Name = tempName;
 
-                    string query = "select ID, inputdate, shopname, address, phonenumber, content, dbmanager, obmanager, salespersion, contractdate, resultcontent, from precontract where obmanager = '" + name + "' and obpay is null";
+                    string query = "select ID, inputdate, shopname, address, phonenumber, content, dbmanager, obmanager, salespersion, contractdate, resultcontent from precontract where obmanager = '" + name + "' and obpay is null";
                     DataSet ds = new DataSet();
                     OleDbDataAdapter adp = new OleDbDataAdapter(query, Main.conn);
                     adp.Fill(ds);
@@ -154,10 +153,6 @@ namespace PayManager
                 }
                 workBook.SaveAs(fileName, Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookNormal);
                 workBook.Close(true);
-                excelApp.Quit();
-
-                Main.ExitExcel(excelApp);
-
                 MessageBox.Show("저장 완료");
             }
         }
@@ -185,6 +180,9 @@ namespace PayManager
                 string obManager = itemArry[0].ToString();
 
                 if (string.IsNullOrEmpty(obManager))
+                    continue;
+
+                if (obManager[obManager.Length - 1] != '1')
                     continue;
 
                 if (dataList.ContainsKey(obManager) == false) {

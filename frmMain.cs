@@ -12,12 +12,24 @@ using System.Data.OleDb;
 using Microsoft.Office.Interop;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ExcelDataReader;
 
 namespace PayManager
 {
     public partial class frmMain : Form
     {
         public OleDbConnection conn;
+        private Microsoft.Office.Interop.Excel.Application application = null;
+
+        public Microsoft.Office.Interop.Excel.Application ExcelApp
+        {
+            get {
+                if (application == null) {
+                    application = new Microsoft.Office.Interop.Excel.Application();
+                }
+                return application;
+            }
+        }
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
@@ -29,6 +41,8 @@ namespace PayManager
             string connStr = @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + System.Windows.Forms.Application.StartupPath + "\\db.mdb" + ";Jet OLEDB:Database Password=";
             conn = new System.Data.OleDb.OleDbConnection(connStr);
             conn.Open();
+
+            
         }
 
         private void Log(string log) {
@@ -128,98 +142,94 @@ namespace PayManager
                     }
                 }
             }
-
-            Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application();
-            Microsoft.Office.Interop.Excel.Workbook workbook = application.Workbooks.Open(tbxPreContractFilePath.Text);
-            application.Visible = false;
-
             int insertCount = 0;
 
-            string[] header = {"일자", "가게명(상호명)", "주 소", "연락처", "상담내용"};
-            for (int i = 0; i < header.Length; i++) {
-                string h = (workbook.Worksheets[1].UsedRange.Cells[1, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
-                if (h != header[i]) {
-                    Log("잘못된 사전 계약 파일 입니다.");
-                    ExitExcel(application);
-                    return;
-                }
-            }
-
-            //foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet1 in workbook.Worksheets)
-            for (int k = 0; k < workbook.Worksheets.Count; k++)
-            {
-                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
-                int blankCount = 0;
-                int stepValue = (100 / workbook.Worksheets.Count);
-
-                for (int i = 2; i <= range.Rows.Count; ++i)
-                {
-                    progressBar1.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
-                    if (blankCount == 10) {
-                        break;
-                    }
-
-                    string[] data = new string[10];
-                    for (int j = 1; j <= 10; ++j)
+            using (var stream = File.Open(tbxPreContractFilePath.Text, FileMode.Open, FileAccess.Read)) {
+                using (var reader = ExcelReaderFactory.CreateReader(stream)) {
+                    var result = reader.AsDataSet(new ExcelDataReader.ExcelDataSetConfiguration() //데이터셋 변환하기
                     {
-                        object dat = (range.Cells[i, j] as Microsoft.Office.Interop.Excel.Range).Value2;
-                        if (dat == null)
-                            continue;
+                        ConfigureDataTable = (tableReader) => new ExcelDataReader.ExcelDataTableConfiguration() {
+                            UseHeaderRow = false,
+                        }
+                    });
 
-                        data[j - 1] = dat.ToString().Replace("\'", "\'\'");
-                    }
+                    
 
-
-                    bool bCheck = false;
-                    foreach (string d in data)
-                    {
-                        if (string.IsNullOrEmpty(d) == false)
-                        {
-                            bCheck = true;
-                            break;
+                    string[] header = { "일자", "가게명(상호명)", "주 소", "연락처", "상담내용" };
+                    for (int i = 0; i < header.Length; i++) {
+                        string h = result.Tables[0].Rows[0][i].ToString();
+                        if (h != header[i]) {
+                            Log("잘못된 사전 계약 파일 입니다.");
+                            stream.Close();
+                            return;
                         }
                     }
 
-                    if (bCheck == false)
-                    {
-                        blankCount++;
-                        continue;
-                    }
+                    for (int k = 0; k < result.Tables.Count; k++) {
+                        int blankCount = 0;
+                        int stepValue = (100 / result.Tables.Count);
+                        DataTable dt = result.Tables[k];
 
-                    if (string.IsNullOrEmpty(data[3]) || phoneNumber.ContainsKey(data[3]))
-                    {
-                        continue;
-                    }
+                        for (int i = 1; i < dt.Rows.Count; ++i) {
+                            progressBar1.Value = stepValue * k + (int)(((float)i / (float)dt.Rows.Count) * (float)stepValue);
+                            if (blankCount == 10) {
+                                break;
+                            }
 
-                    DateTime current = new DateTime();
+                            string[] data = new string[10];
+                            for (int j = 0; j < 10; ++j) {
+                                object dat = dt.Rows[i][j];
+                                if (dat == null)
+                                    continue;
 
-                    if (string.IsNullOrEmpty(data[0])) {
-                        current = DateTime.Parse("1990-01-01");
-                    } else {
-                        double doubleDate;
-                        if (double.TryParse(data[0], out doubleDate))
-                        {
-                            current = DateTime.FromOADate(doubleDate);
+                                data[j] = dat.ToString().Replace("\'", "\'\'");
+                            }
+
+
+                            bool bCheck = false;
+                            foreach (string d in data) {
+                                if (string.IsNullOrEmpty(d) == false) {
+                                    bCheck = true;
+                                    break;
+                                }
+                            }
+
+                            if (bCheck == false) {
+                                blankCount++;
+                                continue;
+                            }
+
+                            if (string.IsNullOrEmpty(data[3]) || phoneNumber.ContainsKey(data[3])) {
+                                continue;
+                            }
+
+                            DateTime current = new DateTime();
+
+                            if (string.IsNullOrEmpty(data[0])) {
+                                current = DateTime.Parse("1990-01-01");
+                            } else {
+                                double doubleDate;
+                                if (double.TryParse(data[0], out doubleDate)) {
+                                    current = DateTime.FromOADate(doubleDate);
+                                }
+                            }
+
+                            string insertQuery = String.Format("INSERT INTO precontract (inputdate, shopname, address, phonenumber, content, dbmanager, obmanager, salespersion, contractdate, resultcontent) VALUES(" +
+                                    "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
+                                    current.ToShortDateString(), data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+
+                            OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
+                            OLECmd.CommandType = CommandType.Text;
+                            OLECmd.ExecuteNonQuery();
+                            OLECmd.Dispose();
+                            insertCount++;
                         }
                     }
-
-                    string insertQuery = String.Format("INSERT INTO precontract (inputdate, shopname, address, phonenumber, content, dbmanager, obmanager, salespersion, contractdate, resultcontent) VALUES(" +
-                            "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
-                            current.ToShortDateString(), data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
-
-                    OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
-                    OLECmd.CommandType = CommandType.Text;
-                    OLECmd.ExecuteNonQuery();
-                    OLECmd.Dispose();
-                    insertCount++;
                 }
+                stream.Close();
             }
-
-            workbook.Close();
 
             Log("신규 사전 계약 데이터가 " + insertCount + "개 데이터가 DB에 저장 되었습니다.");
-
-            ExitExcel(application);
         }
 
         private void UploadContract()
@@ -257,107 +267,98 @@ namespace PayManager
 
             Log("계약 DB에 " + sotreid.Count.ToString() + "개 데이터가 있습니다");
 
-            Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application();
-            Microsoft.Office.Interop.Excel.Workbook workbook = application.Workbooks.Open(tbxContractFilePath.Text);
-            application.Visible = false;
-
             string[] header = { "일자", "서류수신", "가게명(상호명)", "분야", "사업자등록번호", "연락처", "주 소", "대표자"};
-
-            for (int i = 0; i < header.Length; i++) {
-                string h = (workbook.Worksheets[1].UsedRange.Cells[2, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
-                if (h != header[i]) {
-                    Log("잘못된 계약 파일 입니다.");
-                    ExitExcel(application);
-                    return;
-                }
-            }
 
             int insertDataCount = 0;
 
-            for (int k = 0; k < workbook.Worksheets.Count; k++) {
-                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
-                int blankCount = 0;
-                int stepValue = (100 / workbook.Worksheets.Count);
-
-                for (int i = 2; i <= range.Rows.Count; ++i)
-                {
-                    progressBar2.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
-
-                    if (blankCount == 10) {
-                        break;
-                    }
-
-                    string[] data = new string[17];
-                    for (int j = 1; j <= 17; ++j)
+            using (var stream = File.Open(tbxContractFilePath.Text, FileMode.Open, FileAccess.Read)) {
+                using (var reader = ExcelReaderFactory.CreateReader(stream)) {
+                    var result = reader.AsDataSet(new ExcelDataReader.ExcelDataSetConfiguration() //데이터셋 변환하기
                     {
-                        object dat = (range.Cells[i, j] as Microsoft.Office.Interop.Excel.Range).Value2;
-                        if (dat == null)
-                            continue;
+                        ConfigureDataTable = (tableReader) => new ExcelDataReader.ExcelDataTableConfiguration() {
+                            UseHeaderRow = false,
+                        }
+                    });
 
-                        data[j - 1] = dat.ToString().Replace("\'", "\'\'");
-                    }
-
-
-                    bool bCheck = false;
-                    foreach (string d in data)
-                    {
-                        if (string.IsNullOrEmpty(d) == false)
-                        {
-                            bCheck = true;
-                            break;
+                    for (int i = 0; i < header.Length; i++) {
+                        string h = result.Tables[0].Rows[1][i].ToString();
+                        if (h != header[i]) {
+                            Log("잘못된 계약 파일 입니다.");
+                            stream.Close();
+                            return;
                         }
                     }
 
-                    if (bCheck == false)
-                    {
-                        blankCount++;
-                        continue;
-                    }
+                    for (int k = 0; k < result.Tables.Count; k++) {
+                        int blankCount = 0;
+                        int stepValue = (100 / result.Tables.Count);
+                        DataTable dt = result.Tables[k];
 
-                    if (string.IsNullOrEmpty(data[4]) || sotreid.ContainsKey(data[4]))
-                    {
-                        continue;
-                    }
+                        for (int i = 1; i < dt.Rows.Count; ++i) {
+                            progressBar2.Value = stepValue * k + (int)(((float)i / (float)dt.Rows.Count) * (float)stepValue);
 
-                    DateTime current = new DateTime();
+                            if (blankCount == 10) {
+                                break;
+                            }
 
-                    if (string.IsNullOrEmpty(data[0]))
-                    {
-                        current = DateTime.Parse("1990-01-01");
-                    }
-                    else
-                    {
-                        double doubleDate;
+                            string[] data = new string[17];
+                            for (int j = 0; j < 17; ++j) {
+                                object dat = dt.Rows[i][j];
+                                if (dat == null)
+                                    continue;
 
-                        if (double.TryParse(data[0], out doubleDate))
-                        {
-                            current = DateTime.FromOADate(doubleDate);
+                                data[j] = dat.ToString().Replace("\'", "\'\'");
+                            }
+
+
+                            bool bCheck = false;
+                            foreach (string d in data) {
+                                if (string.IsNullOrEmpty(d) == false) {
+                                    bCheck = true;
+                                    break;
+                                }
+                            }
+
+                            if (bCheck == false) {
+                                blankCount++;
+                                continue;
+                            }
+
+                            if (string.IsNullOrEmpty(data[9]) || sotreid.ContainsKey(data[9])) {
+                                continue;
+                            }
+
+                            DateTime current = new DateTime();
+
+                            if (string.IsNullOrEmpty(data[0])) {
+                                current = DateTime.Parse("1990-01-01");
+                            } else {
+                                double doubleDate;
+
+                                if (double.TryParse(data[0], out doubleDate)) {
+                                    current = DateTime.FromOADate(doubleDate);
+                                } else if (DateTime.TryParse(data[0], out current)) {
+                                } else {
+                                    current = DateTime.Parse("1990-01-01");
+                                }
+                            }
+
+                            string insertQuery = String.Format("INSERT INTO contract (inputdate, recevicedocument, shopname, type, registrationnumber, phonenumber, address, representative, salerpersion, storeid, newtoss, oletoss, offerdb, dbmanager, iscontract, pay, content) VALUES(" +
+                                    "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}', '{14}', '{15}', '{16}')",
+                                    current.ToShortDateString(), data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16]);
+
+                            OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
+                            OLECmd.CommandType = CommandType.Text;
+                            OLECmd.ExecuteNonQuery();
+                            OLECmd.Dispose();
+
+                            insertDataCount++;
                         }
-                        else if (DateTime.TryParse(data[0], out current))
-                        {
-                        }
-                        else {
-                            current = DateTime.Parse("1990-01-01");
-                        }
                     }
-
-                    string insertQuery = String.Format("INSERT INTO contract (inputdate, recevicedocument, shopname, type, registrationnumber, phonenumber, address, representative, salerpersion, storeid, newtoss, oletoss, offerdb, dbmanager, iscontract, pay, content) VALUES(" +
-                            "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}', '{14}', '{15}', '{16}')",
-                            current.ToShortDateString(), data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15], data[16]); 
-
-                    OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
-                    OLECmd.CommandType = CommandType.Text;
-                    OLECmd.ExecuteNonQuery();
-                    OLECmd.Dispose();
-
-                    insertDataCount++;
                 }
+                stream.Close();
             }
-
             Log("신규 계약 데이터가 " + insertDataCount + "개 업로드 되었습니다.");
-
-            workbook.Close();
-            ExitExcel(application);
         }
 
         public void ExitExcel(Microsoft.Office.Interop.Excel.Application application)
@@ -388,126 +389,116 @@ namespace PayManager
                 OLECmd.Dispose();
             }
 
-
-            Microsoft.Office.Interop.Excel.Application application = new Microsoft.Office.Interop.Excel.Application();
-            Microsoft.Office.Interop.Excel.Workbook workbook = application.Workbooks.Open(tbxPayFile.Text);
-            application.Visible = false;
-
-            string[] header = { "Storeid", "Storename", "지역1", "대행사별", "리스트업날짜", "정산가능"};
-
-            for (int i = 0; i < header.Length; i++) {
-                string h = (workbook.Worksheets[1].UsedRange.Cells[4, i + 1] as Microsoft.Office.Interop.Excel.Range).Value2.ToString();
-                if (h != header[i]) {
-                    Log("잘못된 정산 파일 입니다.");
-                    ExitExcel(application);
-                    return;
-                }
-            }
-
             int dataCount = 0;
-            for (int k = 0; k < workbook.Worksheets.Count; k++) {
-                Microsoft.Office.Interop.Excel.Range range = workbook.Worksheets[k + 1].UsedRange;
-                int blankCount = 0;
-                bool bBegin = false;
 
-                int stepValue = (100 / workbook.Worksheets.Count);
+            using (var stream = File.Open(tbxPayFile.Text, FileMode.Open, FileAccess.Read)) {
+                using (var reader = ExcelReaderFactory.CreateReader(stream)) {
+                    var result = reader.AsDataSet(new ExcelDataReader.ExcelDataSetConfiguration() //데이터셋 변환하기
+                    {
+                        ConfigureDataTable = (tableReader) => new ExcelDataReader.ExcelDataTableConfiguration() {
+                            UseHeaderRow = false,
+                        }
+                    });
 
-                for (int i = 1; i <= range.Rows.Count; ++i) {
-                    progressBar3.Value = stepValue * k + (int)(((float)i / (float)range.Rows.Count) * (float)stepValue);
+                    string[] header = { "Storeid", "Storename", "지역1", "대행사별", "리스트업날짜", "정산가능" };
 
-                    object temp = (range.Cells[i, 1] as Microsoft.Office.Interop.Excel.Range).Value2;
-                    if (temp == null)
-                        continue;
-
-                    if (bBegin == false && temp.ToString() != "Storeid")
-                        continue;
-
-                    if (temp.ToString() == "Storeid") {
-                        bBegin = true;
-                        continue;
+                    for (int i = 0; i < header.Length; i++) {
+                        string h = result.Tables[0].Rows[3][i].ToString();
+                        if (h != header[i]) {
+                            Log("잘못된 정산 파일 입니다.");
+                            stream.Close();
+                            return;
+                        }
                     }
 
-                    if (blankCount == 10)
-                    {
-                        break;
-                    }
+                    for (int k = 0; k < result.Tables.Count; k++) {
+                        int blankCount = 0;
+                        bool bBegin = false;
 
-                    string[] data = new string[10];
-                    for (int j = 1; j <= 10; ++j)
-                    {
-                        object dat = (range.Cells[i, j] as Microsoft.Office.Interop.Excel.Range).Value2;
-                        if (dat == null)
-                            continue;
+                        int stepValue = (100 / result.Tables.Count);
+                        DataTable dt = result.Tables[k];
 
-                        int tryValue = 0;
-                        if (i == 1)
-                        {
-                            if (int.TryParse(dat.ToString(), out tryValue) == false)
+                        for (int i = 1; i < dt.Rows.Count; ++i) {
+                            progressBar3.Value = stepValue * k + (int)(((float)i / (float)dt.Rows.Count) * (float)stepValue);
+
+                            object temp = dt.Rows[i][0];
+                            if (temp == null)
+                                continue;
+
+                            if (bBegin == false && temp.ToString() != "Storeid")
+                                continue;
+
+                            if (temp.ToString() == "Storeid") {
+                                bBegin = true;
+                                continue;
+                            }
+
+                            if (blankCount == 10) {
                                 break;
+                            }
 
+                            string[] data = new string[10];
+                            for (int j = 0; j < 10; ++j) {
+                                object dat = dt.Rows[i][j];
+                                if (dat == null)
+                                    continue;
+
+                                int tryValue = 0;
+                                if (i == 1) {
+                                    if (int.TryParse(dat.ToString(), out tryValue) == false)
+                                        break;
+
+                                }
+
+                                data[j] = dat.ToString().Replace("\'", "\'\'");
+                            }
+
+
+                            bool bCheck = false;
+                            foreach (string d in data) {
+                                if (string.IsNullOrEmpty(d) == false) {
+                                    bCheck = true;
+                                    break;
+                                }
+                            }
+
+                            if (bCheck == false) {
+                                blankCount++;
+                                continue;
+                            }
+
+                            DateTime dateTime = new DateTime();
+
+                            if (string.IsNullOrEmpty(data[9])) {
+                                dateTime = DateTime.Parse("1990-01-01");
+                            } else {
+                                double doubleDate;
+
+                                if (double.TryParse(data[9], out doubleDate)) {
+                                    dateTime = DateTime.FromOADate(doubleDate);
+                                } else if (DateTime.TryParse(data[0], out dateTime)) {
+                                } else {
+                                    dateTime = DateTime.Parse("1990-01-01");
+                                }
+                            }
+
+                            string insertQuery = String.Format("INSERT INTO paytable (storeid, storename, address, proxy, listupdate, avablecalc, fail, code, proxytype, currentDate) VALUES(" +
+                                    "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
+                                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], dateTime.ToShortDateString());
+
+                            OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
+                            OLECmd.CommandType = CommandType.Text;
+                            OLECmd.ExecuteNonQuery();
+                            OLECmd.Dispose();
+
+                            dataCount++;
                         }
-
-                        data[j - 1] = dat.ToString().Replace("\'", "\'\'");
                     }
-
-
-                    bool bCheck = false;
-                    foreach (string d in data)
-                    {
-                        if (string.IsNullOrEmpty(d) == false)
-                        {
-                            bCheck = true;
-                            break;
-                        }
-                    }
-
-                    if (bCheck == false)
-                    {
-                        blankCount++;
-                        continue;
-                    }
-
-                    DateTime dateTime = new DateTime();
-
-                    if (string.IsNullOrEmpty(data[9]))
-                    {
-                        dateTime = DateTime.Parse("1990-01-01");
-                    }
-                    else
-                    {
-                        double doubleDate;
-
-                        if (double.TryParse(data[9], out doubleDate))
-                        {
-                            dateTime = DateTime.FromOADate(doubleDate);
-                        }
-                        else if (DateTime.TryParse(data[0], out dateTime))
-                        {
-                        }
-                        else
-                        {
-                            dateTime = DateTime.Parse("1990-01-01");
-                        }
-                    }
-
-                    string insertQuery = String.Format("INSERT INTO paytable (storeid, storename, address, proxy, listupdate, avablecalc, fail, code, proxytype, currentDate) VALUES(" +
-                            "'{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
-                            data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], dateTime.ToShortDateString());
-
-                    OleDbCommand OLECmd = new OleDbCommand(insertQuery, conn);
-                    OLECmd.CommandType = CommandType.Text;
-                    OLECmd.ExecuteNonQuery();
-                    OLECmd.Dispose();
-
-                    dataCount++;
                 }
+                stream.Close();
             }
-
-            workbook.Close();
 
             Log("정산 데이터가 " + dataCount + "개 데이터가 있습니다");
-
-            ExitExcel(application);
         }
 
         private void tbxPreContractFilePath_DragEnter(object sender, DragEventArgs e)
