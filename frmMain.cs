@@ -100,17 +100,17 @@ namespace PayManager
             UploadPreContract();
             progressBar1.Value = 100;
             Log("사전 계약 DB 저장 완료");
-
+            Log("====================================");
             Log("계약 파일을 읽고 있습니다.");
             UploadContract();
             progressBar2.Value = 100;
             Log("계약 DB 저장 완료");
-
+            Log("====================================");
             Log("정산 파일을 읽고 있습니다.");
             UploadPayTable();
             progressBar3.Value = 100;
             Log("정산 DB 저장 완료");
-
+            Log("====================================");
             Log("업로드가 완료되었습니다.");
         }
 
