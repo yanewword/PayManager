@@ -19,6 +19,7 @@ namespace PayManager
     public partial class frmMain : Form
     {
         public OleDbConnection conn;
+        private bool isDirty = false;
         private Microsoft.Office.Interop.Excel.Application application = null;
 
         public Microsoft.Office.Interop.Excel.Application ExcelApp
@@ -46,7 +47,7 @@ namespace PayManager
         }
 
         private void Log(string log) {
-            lstLog.Items.Add(DateTime.Now.ToShortTimeString() + " : " + log);
+            lstLog.Items.Add(DateTime.Now.ToLongTimeString().ToString() + " : " + log);
         }
 
         private void btnPreContract_Click(object sender, EventArgs e)
@@ -96,6 +97,11 @@ namespace PayManager
 
         private void btnDBUpload_Click(object sender, EventArgs e)
         {
+            lstLog.Items.Clear();
+            progressBar1.Value = 0;
+            progressBar2.Value = 0;
+            progressBar3.Value = 0;
+
             Log("사전 계약 파일을 읽고 있습니다.");
             UploadPreContract();
             progressBar1.Value = 100;
@@ -112,6 +118,8 @@ namespace PayManager
             Log("정산 DB 저장 완료");
             Log("====================================");
             Log("업로드가 완료되었습니다.");
+            Log("====================================");
+            isDirty = false;
         }
 
         private void UploadPreContract()
@@ -522,6 +530,11 @@ namespace PayManager
 
         private void button4_Click(object sender, EventArgs e)
         {
+            if (isDirty) {
+                btnDBUpload_Click(null, null);
+                isDirty = false;
+            }
+
             DBPay pay = new DBPay(this);
             pay.ShowDialog();
             
@@ -529,6 +542,11 @@ namespace PayManager
 
         private void button5_Click(object sender, EventArgs e)
         {
+            if (isDirty) {
+                btnDBUpload_Click(null, null);
+                isDirty = false;
+            }
+
             OBPay pay = new OBPay(this);
             pay.ShowDialog();
             
@@ -555,6 +573,11 @@ namespace PayManager
 
         private void button6_Click(object sender, EventArgs e)
         {
+            if (isDirty) {
+                btnDBUpload_Click(null, null);
+                isDirty = false;
+            }
+
             SalerPay dlg = new SalerPay(this);
             dlg.ShowDialog();
         }
@@ -581,6 +604,11 @@ namespace PayManager
                 OLECmd.ExecuteNonQuery();
                 OLECmd.Dispose();
             }
+        }
+
+        private void tbxPreContractFilePath_TextChanged(object sender, EventArgs e)
+        {
+            isDirty = true;
         }
     }
 }

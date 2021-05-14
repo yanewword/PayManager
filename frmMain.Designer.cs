@@ -56,7 +56,7 @@
             this.btnPreContract.Name = "btnPreContract";
             this.btnPreContract.Size = new System.Drawing.Size(237, 56);
             this.btnPreContract.TabIndex = 0;
-            this.btnPreContract.Text = "신규 업체 파일";
+            this.btnPreContract.Text = "신규 업체 파일(&N)";
             this.btnPreContract.UseVisualStyleBackColor = true;
             this.btnPreContract.Click += new System.EventHandler(this.btnPreContract_Click);
             // 
@@ -67,7 +67,7 @@
             this.btnContract.Name = "btnContract";
             this.btnContract.Size = new System.Drawing.Size(237, 56);
             this.btnContract.TabIndex = 1;
-            this.btnContract.Text = "계약 업체 파일";
+            this.btnContract.Text = "계약 업체 파일(&C)";
             this.btnContract.UseVisualStyleBackColor = true;
             this.btnContract.Click += new System.EventHandler(this.btnContract_Click);
             // 
@@ -78,7 +78,7 @@
             this.btnPay.Name = "btnPay";
             this.btnPay.Size = new System.Drawing.Size(237, 56);
             this.btnPay.TabIndex = 2;
-            this.btnPay.Text = "급여 정산표";
+            this.btnPay.Text = "급여 정산표 파일(&P)";
             this.btnPay.UseVisualStyleBackColor = true;
             this.btnPay.Click += new System.EventHandler(this.btnPay_Click);
             // 
@@ -89,6 +89,7 @@
             this.tbxPreContractFilePath.Name = "tbxPreContractFilePath";
             this.tbxPreContractFilePath.Size = new System.Drawing.Size(409, 21);
             this.tbxPreContractFilePath.TabIndex = 3;
+            this.tbxPreContractFilePath.TextChanged += new System.EventHandler(this.tbxPreContractFilePath_TextChanged);
             this.tbxPreContractFilePath.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxPreContractFilePath_DragDrop);
             this.tbxPreContractFilePath.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxPreContractFilePath_DragEnter);
             // 
@@ -99,6 +100,7 @@
             this.tbxContractFilePath.Name = "tbxContractFilePath";
             this.tbxContractFilePath.Size = new System.Drawing.Size(409, 21);
             this.tbxContractFilePath.TabIndex = 4;
+            this.tbxContractFilePath.TextChanged += new System.EventHandler(this.tbxPreContractFilePath_TextChanged);
             this.tbxContractFilePath.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxContractFilePath_DragDrop);
             this.tbxContractFilePath.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxContractFilePath_DragEnter);
             // 
@@ -111,6 +113,7 @@
             this.tbxPayFile.TabIndex = 5;
             this.tbxPayFile.DragDrop += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragDrop);
             this.tbxPayFile.DragEnter += new System.Windows.Forms.DragEventHandler(this.tbxPayFile_DragEnter);
+            this.tbxPayFile.Validated += new System.EventHandler(this.tbxPreContractFilePath_TextChanged);
             // 
             // button4
             // 
@@ -119,7 +122,7 @@
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(207, 56);
             this.button4.TabIndex = 6;
-            this.button4.Text = "DB 정산";
+            this.button4.Text = "DB 정산(&D)";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
@@ -130,7 +133,7 @@
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(207, 56);
             this.button5.TabIndex = 7;
-            this.button5.Text = "OB 정산";
+            this.button5.Text = "OB 정산(&O)";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
@@ -141,7 +144,7 @@
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(207, 56);
             this.button6.TabIndex = 8;
-            this.button6.Text = "영업 정산";
+            this.button6.Text = "영업 정산(&S)";
             this.button6.UseVisualStyleBackColor = true;
             this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
@@ -152,7 +155,7 @@
             this.btnDBUpload.Name = "btnDBUpload";
             this.btnDBUpload.Size = new System.Drawing.Size(652, 56);
             this.btnDBUpload.TabIndex = 9;
-            this.btnDBUpload.Text = "DB 업로드";
+            this.btnDBUpload.Text = "DB 업로드(&D)";
             this.btnDBUpload.UseVisualStyleBackColor = true;
             this.btnDBUpload.Click += new System.EventHandler(this.btnDBUpload_Click);
             // 
@@ -177,19 +180,19 @@
             // 
             this.btnResetPay.Location = new System.Drawing.Point(12, 8);
             this.btnResetPay.Name = "btnResetPay";
-            this.btnResetPay.Size = new System.Drawing.Size(120, 23);
+            this.btnResetPay.Size = new System.Drawing.Size(150, 23);
             this.btnResetPay.TabIndex = 12;
-            this.btnResetPay.Text = "정산 데이터 초기화";
+            this.btnResetPay.Text = "정산 데이터 초기화(&R)";
             this.btnResetPay.UseVisualStyleBackColor = true;
             this.btnResetPay.Click += new System.EventHandler(this.btnResetPay_Click);
             // 
             // btnAllReset
             // 
-            this.btnAllReset.Location = new System.Drawing.Point(138, 8);
+            this.btnAllReset.Location = new System.Drawing.Point(168, 8);
             this.btnAllReset.Name = "btnAllReset";
-            this.btnAllReset.Size = new System.Drawing.Size(121, 23);
+            this.btnAllReset.Size = new System.Drawing.Size(135, 23);
             this.btnAllReset.TabIndex = 13;
-            this.btnAllReset.Text = "모든 데이터 초기화";
+            this.btnAllReset.Text = "모든 데이터 초기화(&A)";
             this.btnAllReset.UseVisualStyleBackColor = true;
             this.btnAllReset.Click += new System.EventHandler(this.btnAllReset_Click);
             // 
